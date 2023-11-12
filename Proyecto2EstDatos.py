@@ -12,7 +12,7 @@
 class Tabla_Hash:
 
     def __init__(self):
-        self.tabla = [None] * 10
+        self.tabla = {}
 
     def funcion_hash(self, val):
         return ((val%10+1)%10)
@@ -24,19 +24,51 @@ class Tabla_Hash:
         return suma
     
     def agregar(self, tipo, nom, val):
-        x = self.valor_str(nom)
-        indice = self.funcion_hash(x)
-        tupla = (tipo, nom, val)
-        if (self.tabla[indice] is None):
-            self.tabla[indice] = [tupla]
-        else:
-            self.tabla[indice].append(tupla)
-    
+        #x = self.valor_str(nom)
+        #indice = self.funcion_hash(x)
+        self.tabla[nom] = (tipo, val)
+        
     def mostrar_tabla(self):
-        n = 0
         for i in self.tabla:
-            print(f"[{n}] -> {i}")
-            n += 1
+            print(f"[{i}] -> {self.tabla[i]}")
+    
+class Error:
+    def error_no_declarado(self, linea, nom):
+        print(f"Error - Linea {linea} '{nom}' no esta declarado")
+
+    def error_no_declarado(self, linea, nom):
+        print(f"Error - Linea {linea} valor de retorno no coincide con la declaracion '{nom}'")
+
+class Analizador:
+    def __int__(self):
+        self.tabla = Tabla_Hash()
+
+    def analisis(self, linea, numLinea):
+        vec = []
+        i = 0
+        for palabra in linea.split():
+            if (palabra is "int" or "string" or "float" or "void"):
+                vec[i] = palabra
+                palabra in linea.split()
+                if(palabra is not tabla and palabra is not "int" or "string" or "float" or "void" or "{" or "}" or "(" or ")"):
+                    i+=1
+                    vec[i] = palabra
+                    palabra in linea.split()
+                    if(palabra is "="):
+                        
+            elif ():
+
+
+    def leer_archivo(self, archivo):
+        n = 1
+        with open(archivo, "r") as f:
+            for linea in f:
+                return
+                
+
+
+                
+
 
 tabla = Tabla_Hash()
 tabla.agregar("int", "x", 20)
