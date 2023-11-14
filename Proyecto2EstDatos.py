@@ -36,12 +36,13 @@ class Error:
     def error_no_declarado(self, linea, nom):
         print(f"Error - Linea {linea} '{nom}' no esta declarado")
 
-    def error_no_declarado(self, linea, nom):
+    def error_retorno(self, linea, nom):
         print(f"Error - Linea {linea} valor de retorno no coincide con la declaracion '{nom}'")
 
 class Analizador:
     def __int__(self):
         self.tabla = Tabla_Hash()
+        self.error = Error()
 
     def analisis(self, linea, numLinea):
         vec = []
