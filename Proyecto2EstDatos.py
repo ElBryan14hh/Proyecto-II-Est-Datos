@@ -14,18 +14,7 @@ class Tabla_Hash:
     def __init__(self):
         self.tabla = {}
 
-    def funcion_hash(self, val):
-        return ((val%10+1)%10)
-    
-    def valor_str(self, str):
-        suma = 0
-        for i in str:
-            suma += ord(i)
-        return suma
-    
     def agregar(self, tipo, nom, val):
-        #x = self.valor_str(nom)
-        #indice = self.funcion_hash(x)
         self.tabla[nom] = (tipo, val)
         
     def mostrar_tabla(self):
@@ -39,41 +28,49 @@ class Error:
     def error_retorno(self, linea, nom):
         print(f"Error - Linea {linea} valor de retorno no coincide con la declaracion '{nom}'")
 
+    def error_asignacion(self, linea, nom):
+         print(f"Error - Linea {linea} tipo de variable de '{nom}' no coincide con el valor de asignacion")
+
 class Analizador:
-    def __int__(self):
-        self.tabla = Tabla_Hash()
+
+    def __init__(self):
+        self.tablita = Tabla_Hash()
         self.error = Error()
 
-    def analisis(self, linea, numLinea):
-        vec = []
-        i = 0
-        for palabra in linea.split():
-            if (palabra is "int" or "string" or "float" or "void"):
-                vec[i] = palabra
-                palabra in linea.split()
-                if(palabra is not tabla and palabra is not "int" or "string" or "float" or "void" or "{" or "}" or "(" or ")"):
-                    i+=1
-                    vec[i] = palabra
-                    palabra in linea.split()
-                    if(palabra is "="):
-                        
-            elif ():
-
+    def variables(self, linea, numLinea):
+        palabra = linea.split()
+        salir = False
+        try:
+            pal = palabra[3]
+            if(palabra[0] == "int"):
+                i = int(pal)
+            elif(palabra[0] == "float"):
+                i = float(pal)
+            elif(palabra[0] == "string"):
+                try:
+                    if('.' in pal):
+                        i = float(pal)
+                    else:
+                        i = int(pal) 
+                    salir = True
+                except:
+                    i = pal[1:(len(pal)-1)]
+            else:
+                raise
+            if(salir):
+                raise
+            self.tablita.agregar(palabra[0], palabra[1], i)
+        except:
+            self.error.error_asignacion(numLinea, palabra[1])
 
     def leer_archivo(self, archivo):
         n = 1
         with open(archivo, "r") as f:
             for linea in f:
-                return
-                
+                self.variables(linea, n)
+                n+=1
+        self.tablita.mostrar_tabla()
 
-
-                
-
-
-tabla = Tabla_Hash()
-tabla.agregar("int", "x", 20)
-tabla.agregar("int", "A7", 40)
-tabla.agregar("string", "cadena", "Hola")
-tabla.mostrar_tabla()
+an = Analizador()
+an.leer_archivo("codigo.txt")
 
