@@ -7,3 +7,5 @@ int funcion(float v, string n){
  }
  return n
 }
+
+int y = funcion(30, "hola")

@@ -14,11 +14,8 @@ class Tabla_Hash:
     def __init__(self):
         self.tabla = {}
 
-    def agregar(self, tipo, nom, val):
-        self.tabla[nom] = (tipo, val)
-    
-    def modificar_valor(self, nom, val):
-        self.tabla[nom] = (self.tabla[nom][0], val)
+    def agregar(self, tipo, nom):
+        self.tabla[nom] = tipo
 
     def mostrar_tabla(self):
         for i in self.tabla:
@@ -44,7 +41,7 @@ class Pila:
     def eliminar(self):
         vec = []
         for var in reversed(self.stack):
-            if(var.ubicacion == self.cont):
+            if(var.ubicacion == self.cont and self.cont != 0):
                 vec.append(var.clave)
                 self.stack.pop()
             else:
@@ -85,12 +82,38 @@ class Error:
         print(f"Error - Linea {linea}: '{nom}' no puede retornar ningun valor")
         self.cant += 1
 
+    def error_argumentos(self, linea, nom):
+        print(f"Error - Linea {linea}: cantidad de argumentos no coincide con '{nom}'")
+        self.cant += 1
+    
+    def error_parametro(self, linea, nom):
+        print(f"Error - Linea {linea}: el valor de algun parametro no coincide con '{nom}'")
+        self.cant += 1
+
 class Analizador:
     def __init__(self):
         self.tablita = Tabla_Hash()
         self.error = Error()
         self.pila = Pila()
         self.funcion = ""
+        self.tabla_funciones = Tabla_Hash()
+
+    def tipo_dato(self, tipo, val):
+        try:
+            if(val in self.tablita.tabla):
+                tipo2 = self.tablita.tabla[val]
+                if(tipo2 != tipo):
+                    raise
+            elif(tipo == "string"):
+                if(val.count('"') != 2):
+                    raise
+            elif(tipo == "int"):
+                p = int(val)
+            else:
+                p = float(val)
+        except:
+            return False
+        return True
 
     def variables(self, linea, numLinea):
         palabra = linea.split()
@@ -100,25 +123,38 @@ class Analizador:
                 self.error.error_ya_declarado(numLinea, palabra[1])
                 return
             pal = palabra[3]
-            if(palabra[0] == "int"):
-                i = int(pal)
-            elif(palabra[0] == "float"):
-                i = float(pal)
-            elif(palabra[0] == "string"):
-                try:
-                    if('.' in pal):
-                        i = float(pal)
-                    else:
-                        i = int(pal) 
-                    salir = True
-                except:
-                    i = pal[1:(len(pal)-1)]
+            pal2 = palabra[3:]
+            p = "".join(pal2)
+            p = self.remplazar_en_linea(p).split()
+            if(p[0] in self.tabla_funciones.tabla):
+                params = self.tabla_funciones.tabla[p[0]]
+                vals = p[1:]
+                if(len(params) != len(vals)):
+                    self.error.error_argumentos(numLinea, p[0])
+                else:
+                    for i in range (0, len(params)):
+                        if(self.tipo_dato(params[i], vals[i]) == False):
+                            self.error.error_parametro(numLinea, p[0])
+                            break
+                if(palabra[0] != self.tablita.tabla[p[0]]):
+                    raise
             else:
-                raise
-            if(salir):
-                raise
-            self.tablita.agregar(palabra[0], palabra[1], i)
-            self.pila.agregar(palabra[1])
+                if(palabra[0] == "int"):
+                    i = int(pal)
+                elif(palabra[0] == "float"):
+                    i = float(pal)
+                elif(palabra[0] == "string"):
+                    try:
+                        i = float(pal)
+                        salir = True
+                    except:
+                        salir = False
+                else:
+                    raise
+                if(salir):
+                    raise
+                self.tablita.agregar(palabra[0], palabra[1])
+                self.pila.agregar(palabra[1])
         except:
             self.error.error_asignacion(numLinea, palabra[1])
 
@@ -141,15 +177,23 @@ class Analizador:
     
     def funciones(self, linea, numLinea):
         palabra = linea.split()
+        vec = []
+        pal = ""
         for i in range (0, len(palabra) - 1, 2):
             if(palabra[i + 1] not in self.tablita.tabla):
                 if(i == 0):
-                    self.pila.aumentar()
+                    pal = palabra[i + 1]
                     self.funcion = palabra[1]
-                self.tablita.agregar(palabra[i], palabra[i + 1], any)
+                else:
+                    vec.append(palabra[i])
+                if(i == 2):
+                    self.pila.aumentar()
+                self.tablita.agregar(palabra[i], palabra[i + 1])
                 self.pila.agregar(palabra[i + 1])
             else:
                 self.error.error_ya_declarado(numLinea, palabra[i + 1])
+        if(pal != ""):
+            self.tabla_funciones.agregar(vec, pal)
         
     def funcion_reservadas(self, linea, numLinea):
         palabra = linea.split()
@@ -157,7 +201,7 @@ class Analizador:
             self.pila.aumentar()
             pal = palabra[1]
             if(pal in self.tablita.tabla):
-                tipo = self.tablita.tabla[pal][0]
+                tipo = self.tablita.tabla[pal]
                 try:
                     if(tipo == "int"):
                         i = int(palabra[2])
@@ -204,11 +248,11 @@ class Analizador:
         palabra = linea.split()
         pal = palabra[0]
         if(pal in self.tablita.tabla):
-            tipo = self.tablita.tabla[pal][0]
+            tipo = self.tablita.tabla[pal]
             if(tipo == "int" or "float" or "string"):
                 try:
                     if(palabra[1] in self.tablita.tabla):
-                        tipo2 = self.tablita.tabla[palabra[1]][0]
+                        tipo2 = self.tablita.tabla[palabra[1]]
                         if(tipo2 != "int" and tipo2 != "float" and tipo2 != "string"):
                             raise
                     elif(tipo == "string"):
@@ -225,7 +269,7 @@ class Analizador:
 
     def valor_retorno(self, linea, numLinea):
         palabra = linea.split()
-        tipo = self.tablita.tabla[self.funcion][0]
+        tipo = self.tablita.tabla[self.funcion]
         if(tipo == "void"):
             if(len(palabra) == 1):
                 return
@@ -236,7 +280,7 @@ class Analizador:
             try:
                 if(val in self.tablita.tabla):
                     
-                    if(self.tablita.tabla[val][0] == tipo):
+                    if(self.tablita.tabla[val] == tipo):
                         return
                     else:
                         raise
@@ -253,7 +297,7 @@ class Analizador:
             except:
                 self.error.error_retorno(numLinea, self.funcion)
 
-    def fin_funcion(self, linea, numLinea):
+    def fin_funcion(self):
         vec = self.pila.eliminar()
         for i in vec:
             del self.tablita.tabla[i]
@@ -283,10 +327,10 @@ class Analizador:
                 elif(lin3 != []):
                     if(lin3[0] == "return"):
                         self.valor_retorno(linea, n)
-                elif(linea[0] == "}"):
-                    self.fin_funcion(linea, n)
+                    elif(lin3[0] == "}"):
+                        self.fin_funcion()
                 n+=1
-        print(f"Errores -> [{self.error.cant}]")
+        print(f"\nErrores -> [{self.error.cant}]")
         if(self.error.cant == 0):
             print("El codigo se ha compilado correctamente!")
         self.tablita.mostrar_tabla()
