@@ -153,8 +153,8 @@ class Analizador:
                     raise
                 if(salir):
                     raise
-                self.tablita.agregar(palabra[0], palabra[1])
-                self.pila.agregar(palabra[1])
+            self.tablita.agregar(palabra[0], palabra[1])
+            self.pila.agregar(palabra[1])
         except:
             self.error.error_asignacion(numLinea, palabra[1])
 
@@ -310,7 +310,7 @@ class Analizador:
                 lin2 = lin.split()
                 lin3 = linea.split()
                 if('=' in linea and lin2[0] != "if" and lin2[0] != "while"):
-                    if(lin2[0] != "int" and "string" and "float"):
+                    if(lin2[0] != "int" and lin2[0] != "string" and lin2[0] != "float"):
                         if('+' in linea or '/' in linea or '-' in linea or '*' in linea or '%' in linea):
                             self.operaciones(lin, n)
                         else:

@@ -9,3 +9,4 @@ int funcion(float v, string n){
 }
 
 int y = funcion(30, "hola")
+int funcion = 23
